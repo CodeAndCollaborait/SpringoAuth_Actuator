@@ -1,6 +1,7 @@
 package com.auth.api.filter;
 
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.authentication.AbstractAuthenticationProcessingFilter;
@@ -11,6 +12,7 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.util.Collections;
 
 public class JWTLogInFilter extends AbstractAuthenticationProcessingFilter {
   
@@ -20,19 +22,30 @@ public class JWTLogInFilter extends AbstractAuthenticationProcessingFilter {
 	setAuthenticationManager(authenticationManager);
   }
   
- 
-  
   
   @Override
   public Authentication attemptAuthentication(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse)
 		  throws AuthenticationException, IOException, ServletException {
-	return null;
+	
+    String userName = httpServletRequest.getParameter("username");
+    String passWord = httpServletRequest.getParameter("password");
+	System.out.printf("JWT LOGIN username and password: %s,%s", userName, passWord);
+	System.out.println();
+	
+	return getAuthenticationManager().authenticate(new UsernamePasswordAuthenticationToken(userName, passWord,
+			Collections.emptyList()));
+	
   }
   
   @Override
   protected void successfulAuthentication(HttpServletRequest request, HttpServletResponse response, FilterChain chain
 		  , Authentication authResult) throws IOException, ServletException {
-	super.successfulAuthentication(request, response, chain, authResult);
+  
+	System.out.println("JWTLoginFilter.successfulAuthentication:");
+	// Write Authorization to Headers of Response.
+	TokenAuthService.addAuthentication(response, authResult.getName());
+	String authorizationString = response.getHeader("Authorization");
+	System.out.println("Authorization String=" + authorizationString);
   }
   
   
